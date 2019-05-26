@@ -2,7 +2,7 @@
 // @name         mod.io typedefs
 // @namespace    https://yal.cc/
 // @version      0.1
-// @description  try to take over the world!
+// @description  Adds "Copy typedef" buttons to endpoint documentation.
 // @author       YellowAfterlife
 // @match        https://docs.mod.io/
 // @grant        none
@@ -31,6 +31,8 @@
                     case 'integer': type = 'Int'; break;
                     case 'string': type = 'String'; break;
                     case 'boolean': type = 'Bool'; break;
+                    case 'float': type = 'Float'; break;
+                    case 'file': case 'zip': type = 'ModioFile'; break;
                 }
             }
             if (typeCell.textContent.includes('[]')) type = `ModioArray<${type}>`;

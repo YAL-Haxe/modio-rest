@@ -191,4 +191,137 @@ import modio.__macro.ModioMacro.*;
 		reqSend(fn, custom);
 	}
 	//}
+	
+	//{ Media
+	/** @see https://docs.mod.io/#add-game-media */
+	public static function addGameMedia<T>(game_id:Int, fields:ModioAddGameMedia, fn:ModioFunc<ModioMessage, T>, ?custom:T):Void {
+		reqStart("POST", '/games/$game_id/media');
+		reqAddUserToken();
+		reqAddTypedef(fields);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#add-mod-media */
+	public static function addModMedia<T>(mod_id:Int, fields:ModioAddModMedia, fn:ModioFunc<ModioMessage, T>, ?custom:T):Void {
+		reqStart("POST", '/games/$gameId/mods/$mod_id/media');
+		reqAddUserToken();
+		reqAddTypedef(fields);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#add-mod-media */
+	public static function deleteModMedia<T>(mod_id:Int, fields:ModioDeleteModMedia, fn:ModioFunc<ModioBlank, T>, ?custom:T):Void {
+		reqStart("DELETE", '/games/$gameId/mods/$mod_id/media');
+		reqAddUserToken();
+		reqAddTypedef(fields);
+		reqSend(fn, custom);
+	}
+	//}
+	
+	//{ Subscribe
+	/** @see https://docs.mod.io/#subscribe-to-mod */
+	public static function subscribe<T>(mod_id:Int, fn:ModioFunc<ModioMod, T>, ?custom:T):Void {
+		reqStart("POST", '/games/$gameId/mods/$mod_id/subscribe');
+		reqAddUserToken();
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#unsubscribe-from-mod */
+	public static function unsubscribe<T>(mod_id:Int, fn:ModioFunc<ModioMod, T>, ?custom:T):Void {
+		reqStart("DELETE", '/games/$gameId/mods/$mod_id/subscribe');
+		reqAddUserToken();
+		reqSend(fn, custom);
+	}
+	//}
+	
+	//{ Events
+	/** @see https://docs.mod.io/#get-all-mod-events */
+	public static function getAllModEvents<T>(game_id:Int, filters:Array<ModioFilter>, fn:ModioFunc<ModioGetModEvents, T>, ?custom:T):Void {
+		reqStart("GET", '/games/$game_id/mods/events');
+		reqAddUserTokenOrAppKey();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-mod-events */
+	public static function getModEvents<T>(mod_id:Int, fn:ModioFunc<ModioGetModEvents, T>, ?custom:T):Void {
+		reqStart("GET", '/games/$gameId/mods/$mod_id/events');
+		reqAddUserTokenOrAppKey();
+		reqSend(fn, custom);
+	}
+	//}
+	
+	//{ Stats
+	/** @see https://docs.mod.io/#get-all-mod-events */
+	public static function getAllModStats<T>(game_id:Int, filters:Array<ModioFilter>, fn:ModioFunc<ModioGetModStats, T>, ?custom:T):Void {
+		reqStart("GET", '/games/$game_id/mods/stats');
+		reqAddUserTokenOrAppKey();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-mod-stats */
+	public static function getModStats<T>(mod_id:Int, fn:ModioFunc<ModioStats, T>, ?custom:T):Void {
+		reqStart("GET", '/games/$gameId/mods/$mod_id/stats');
+		reqAddUserTokenOrAppKey();
+		reqSend(fn, custom);
+	}
+	//}
+	
+	// todo: Tags
+	// todo: Ratings
+	// todo: Metadata
+	// todo: Dependencies
+	// todo: Teams
+	// todo: Comments
+	// todo: Reports
+	
+	//{ Me
+	/** @see https://docs.mod.io/#get-authenticated-user */
+	public static function getAuthenticatedUser<T>(fn:ModioFunc<ModioUser, T>, ?custom:T):Void {
+		reqStart("GET", '/me');
+		reqAddUserToken();
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-user-subscriptions */
+	public static function getUserSubscriptions<T>(filters:Array<ModioFilter>, fn:ModioFunc<ModioGetAllMods, T>, ?custom:T):Void {
+		reqStart("GET", '/me/subscribed');
+		reqAddUserToken();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-user-events */
+	public static function getUserEvents<T>(filters:Array<ModioFilter>, fn:ModioFunc<ModioGetUserEvents, T>, ?custom:T):Void {
+		reqStart("GET", '/me/events');
+		reqAddUserToken();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-user-games */
+	public static function getUserGames<T>(filters:Array<ModioFilter>, fn:ModioFunc<ModioGetAllGames, T>, ?custom:T):Void {
+		reqStart("GET", '/me/games');
+		reqAddUserToken();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-user-mods */
+	public static function getUserMods<T>(filters:Array<ModioFilter>, fn:ModioFunc<ModioGetAllMods, T>, ?custom:T):Void {
+		reqStart("GET", '/me/mods');
+		reqAddUserToken();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	
+	/** @see https://docs.mod.io/#get-user-modfiles */
+	public static function getUserModfiles<T>(filters:Array<ModioFilter>, fn:ModioFunc<ModioGetAllModfiles, T>, ?custom:T):Void {
+		reqStart("GET", '/me/files');
+		reqAddUserToken();
+		reqAddFilters(filters);
+		reqSend(fn, custom);
+	}
+	//}
 }

@@ -20,7 +20,7 @@ import sys.thread.Thread;
 #end
 
 /**
- * ...
+ * Helpers for building out requests.
  * @author YellowAfterlife
  */
 class ModioCore {
