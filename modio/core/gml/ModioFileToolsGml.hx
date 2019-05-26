@@ -7,7 +7,7 @@ import gml.io.Buffer;
  */
 class ModioFileToolsGml {
 	public static inline function load(path:String):Buffer {
-		var data = Buffer.load(file);
+		var data = Buffer.load(path);
 		data.position = data.size;
 		return data;
 	}

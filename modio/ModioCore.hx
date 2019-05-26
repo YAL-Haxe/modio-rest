@@ -12,8 +12,8 @@ import modio.ModioFile;
  */
 class ModioCore {
 	private static var environment:ModioEnvironment;
-	private static var apiKey:String;
-	private static var userToken:String;
+	private static var apiKey:String = null;
+	private static var userToken:String = null;
 	private static var reqServer:String = "https://api.mod.io/v1";
 	
 	private static var reqMethod:String;
