@@ -116,6 +116,13 @@ class ModioCore {
 		reqSetHeader('Authorization', 'Bearer ' + userToken);
 	}
 	
+	/** Adds a user token, or an API key if no token was provided */
+	public static inline function reqAddUserTokenOrAppKey() {
+		if (userToken != null) {
+			reqAddUserToken();
+		} else reqAddAppKey();
+	}
+	
 	static var reqMultipartBoundaryChars:String = modio.__macro.ModioMacro.reqMultipartBoundaryCharsGen();
 	/**
 	 * Switches the request into multipart/form-data mode.
@@ -206,6 +213,25 @@ class ModioCore {
 			reqBuf.add(reqMultipartBoundary);
 			reqBuf.add('--\r\n');
 		}
+		#if !gml
+		inline function failure(x:Dynamic, status:Int):ModioResponse {
+			return {
+				error: {
+					code: status < 0 ? 500 : status,
+					message: Std.string(x)
+				}
+			};
+		}
+		inline function parse(s:String):Dynamic {
+			if (s == "") {
+				return {};
+			} else try {
+				return Json.parse(s);
+			} catch (x:Dynamic) {
+				return failure("[Invalid JSON] " + x, 500);
+			}
+		}
+		#end
 		#if (gml)
 			// GML uses an async events instead of callbacks so we accomodate that
 			// (and the user calls modio_async_http from Async - HTTP event somewhere)
@@ -236,44 +262,49 @@ class ModioCore {
 			procTh(function() {
 				var out = new BytesOutput();
 				var status = -1;
-				var ok = true;
-				http.onError = function(e) {
-					ok = false;
-					if (status < 0) status = 500;
-					var json:ModioResponse = {
-						error: {
-							code: status,
-							message: "" + e
-						}
-					};
-					httpMutex.acquire();
-					pair.result = json;
-					httpMutex.release();
-				};
-				http.onStatus = function(i) {
-					status = i;
-				}
-				if (reqGET) {
+				var read = true;
+				var isGET = reqGET;
+				http.onStatus = function(i) status = i;
+				if (isGET) {
 					http.url = reqBuf.toString();
-					http.onData = function(text:String) {
-						var o = Json.parse(text);
+					http.onError = function(e) {
+						read = false;
+						var r = failure(e, status);
 						httpMutex.acquire();
-						pair.result = o;
+						pair.status = status;
+						pair.result = r;
+						httpMutex.release();
+					};
+					http.onData = function(s:String) {
+						var r = parse(s);
+						httpMutex.acquire();
+						pair.status = status;
+						pair.result = r;
 						httpMutex.release();
 					};
 					http.request(false);
 				} else {
+					var eresult = null;
+					http.onError = function(e) {
+						read = false;
+						eresult = failure(e, status);
+					};
+					//
 					var body = reqBuf.toString();
 					http.setPostData(body);
 					http.customRequest(true, out, null, reqMethod);
+					// customRequest doesn't call onData,
+					// instead synchronously writing to Output (arg.)
 					var b = out.getBytes();
 					var s = b.getString(0, b.length);
-					if (s != "") {
-						var o = Json.parse(s);
-						httpMutex.acquire();
-						pair.result = o;
-						httpMutex.release();
-					}
+					var r:Dynamic;
+					if (s == "" && eresult != null) {
+						r = eresult;
+					} else r = parse(s);
+					httpMutex.acquire();
+					pair.status = status;
+					pair.result = r;
+					httpMutex.release();
 				}
 			});
 		#else
@@ -281,22 +312,16 @@ class ModioCore {
 			#if js
 			http.async = true;
 			#end
+			var status = -1;
+			http.onStatus = function(i) status = i;
 			http.onError = function(e) {
-				var json:ModioResponse;
-				try {
-					json = Json.parse(http.responseData);
-				} catch (_:Dynamic) {
-					json = {
-						error: {
-							code: 500,
-							message: "" + e
-						}
-					};
-				}
-				fn(cast json, custom);
+				var result = parse(http.responseData);
+				reqInvoke(fn, result, custom, status);
 			};
 			http.onData = function(s) {
-				fn(Json.parse(s), custom);
+				Modio.status = status;
+				var result = parse(s);
+				reqInvoke(fn, result, custom, status);
 			};
 			if (reqGET) {
 				http.url = reqBuf.toString();
@@ -315,6 +340,11 @@ class ModioCore {
 			}
 		#end
 	}
+	
+	public static inline function reqInvoke<T,C>(func:ModioFunc<T,C>, result:T, custom:C, httpStatus:Int):Void {
+		Modio.status = httpStatus;
+		func(result, custom);
+	}
 	#if gml
 	private static var httpMap:HashTable<HTTP, ModioHTTP> = new HashTable();
 	@:expose("modio_async_http") public static function httpEventHandler() {
@@ -327,17 +357,18 @@ class ModioCore {
 		// but here we do not want that, so we'll cast to a non-field function.
 		var fn:Dynamic->Dynamic->Void = req.func;
 		var json:HashTable<String, Dynamic>;
-		if (e.status == Success) {
+		if (e.result != null) {
 			json = HashTable.parse(e.result);
+			if (json == HashTable.defValue) json = new HashTable();
 		} else {
 			json = new HashTable();
 			var error = new HashTable<String, Dynamic>();
 			error["code"] = e.httpStatus;
-			error["message"] = "Failed to reach mod.io, HTTP " + e.httpStatus;
+			error["message"] = "HTTP " + e.httpStatus;
 			json["code"] = e.httpStatus;
 			json.addMap("error", error);
 		}
-		fn(json, req.custom);
+		reqInvoke(fn, json, req.custom, e.httpStatus);
 		json.destroy();
 	}
 	#elseif sys
@@ -355,7 +386,7 @@ class ModioCore {
 		while (i < n) {
 			var q = l[i];
 			if (q.result != null) {
-				q.func(q.result, q.custom);
+				reqInvoke(q.func, q.result, q.custom, q.status);
 				l.splice(i, 1);
 				n--;
 			} else i++;
@@ -398,6 +429,7 @@ private abstract ModioBuf(Buffer) to Buffer {
 private class ModioHTTP {
 	public var result:Dynamic = null;
 	public var func:Dynamic->Dynamic->Void;
+	public var status:Int = -1;
 	public var custom:Dynamic;
 	public function new(f:Dynamic->Dynamic->Void, c:Dynamic) {
 		func = f;

@@ -1,9 +1,7 @@
 package modio.schema;
 
 /**
- * ...
+ * No content
  * @author YellowAfterlife
  */
-typedef ModioResponse = {
-	?error:ModioError
-}
+typedef ModioBlank = {};
