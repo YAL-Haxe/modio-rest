@@ -1,4 +1,4 @@
-package modio.misc;
+package modio.core.std;
 
 import haxe.http.HttpJs;
 

@@ -33,9 +33,9 @@ import modio.__macro.ModioMacro.*;
 		userToken = userAuthToken;
 	}
 	
-	#if (!gml && sys)
+	#if (sys && target.threaded)
 	public static function update():Void {
-		ModioCore.update();
+		modio.core.ModioReq.update();
 	}
 	#end
 	
