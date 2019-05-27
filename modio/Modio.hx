@@ -12,12 +12,17 @@ import modio.__macro.ModioMacro.*;
 #if (js) @:expose("Modio") #end
 @:doc @:keep class Modio {
 	
-	@:doc public static var gameId:Int;
+	@:doc public static var gameId:Int = -1;
 	
 	/**
 	 * HTTP status code of the latest request
 	 */
-	@:doc public static var status:Int;
+	@:doc public static var status:Int = 200;
+	
+	/**
+	 * Error text of latest request (null if no errors)
+	 */
+	@:doc public static var errorText:String = null;
 	
 	@:access(modio.ModioCore)
 	public static function init(_environment:ModioEnvironment, _gameId:Int, _apiKey:String) {

@@ -15,6 +15,7 @@ class ModioReqGml {
 	
 	public static inline function start() {
 		ModioCore.reqBuf.rewind();
+		reqHeaders.clear();
 	}
 	
 	public static inline function setHeader(field:String, val:String):Void {
@@ -24,10 +25,11 @@ class ModioReqGml {
 	public static inline function send<J,C>(fn:(json:J, custom:C)->Void, custom:C):Void {
 		// GML uses an async events instead of callbacks so we accomodate that
 		// (and the user calls modio_async_http from Async - HTTP event somewhere)
-		var id:HTTP;
+		var http:HTTP;
 		if (reqGET) {
 			reqURL = reqBuf.toString();
-			id = HTTP.get(reqURL);
+			// we still have to go through HTTP.request for GET because we need headers
+			http = HTTP.request(reqURL, "GET", reqHeaders, "");
 		} else {
 			if (reqMultipart) {
 				(reqBuf:Buffer).savePart("body.bin", 0, reqBuf.length);
@@ -35,9 +37,9 @@ class ModioReqGml {
 			}
 			// required for HTTP.request to transmit payload with 0-bytes correctly
 			reqSetHeader("Content-Length", Std.string(reqBuf.length));
-			id = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
+			http = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
 		}
-		httpMap[id] = { func: fn, custom: custom };
+		httpMap[http] = { func: fn, custom: custom };
 	}
 	
 	private static var httpMap:HashTable<HTTP, ModioHTTP> = new HashTable();
@@ -62,7 +64,7 @@ class ModioReqGml {
 			json["code"] = e.httpStatus;
 			json.addMap("error", error);
 		}
-		reqInvoke(fn, json, req.custom, e.httpStatus);
+		reqInvoke(fn, cast json, req.custom, e.httpStatus);
 		json.destroy();
 	}
 }

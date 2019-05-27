@@ -168,6 +168,10 @@ class ModioCore {
 	
 	public static inline function reqInvoke<T,C>(func:ModioFunc<T,C>, result:T, custom:C, httpStatus:Int):Void {
 		Modio.status = httpStatus;
+		var response:ModioResponse = cast result;
+		var errorText = response.error != null ? response.error.message : null;
+		if (httpStatus >= 400 && errorText == null) errorText = "HTTP " + httpStatus;
+		Modio.errorText = errorText;
 		func(result, custom);
 	}
 }
