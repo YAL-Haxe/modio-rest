@@ -32,12 +32,13 @@ class ModioReqGml {
 			http = HTTP.request(reqURL, "GET", reqHeaders, "");
 		} else {
 			if (reqMultipart) {
-				(reqBuf:Buffer).savePart("body.bin", 0, reqBuf.length);
-				sys.io.File.saveContent('headers.txt', reqHeaders.toString());
+				// required for HTTP.request to transmit payload with 0-bytes correctly
+				reqSetHeader("Content-Length", Std.string(reqBuf.length));
+				http = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
+			} else {
+				var body = reqBuf.toString();
+				http = HTTP.request(reqURL, reqMethod, reqHeaders, body);
 			}
-			// required for HTTP.request to transmit payload with 0-bytes correctly
-			reqSetHeader("Content-Length", Std.string(reqBuf.length));
-			http = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
 		}
 		httpMap[http] = { func: fn, custom: custom };
 	}
