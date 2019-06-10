@@ -4,7 +4,7 @@ import haxe.extern.EitherType;
 /**
  * @author YellowAfterlife
  */
-enum ModioFilter {
+@:keep enum ModioFilter {
 	FullText(text:String);
 	Equal(field:String, value:ModioFilterValue);
 	NotEqual(field:String, value:ModioFilterValue);

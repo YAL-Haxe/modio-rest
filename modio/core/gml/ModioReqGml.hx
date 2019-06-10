@@ -23,22 +23,22 @@ class ModioReqGml {
 	}
 	
 	public static inline function send<J,C>(fn:(json:J, custom:C)->Void, custom:C):Void {
-		// GML uses an async events instead of callbacks so we accomodate that
+		// GML uses async events instead of callbacks so we accomodate that
 		// (and the user calls modio_async_http from Async - HTTP event somewhere)
 		var http:HTTP;
 		if (reqGET) {
 			reqURL = reqBuf.toString();
-			// we still have to go through HTTP.request for GET because we need headers
-			http = HTTP.request(reqURL, "GET", reqHeaders, "");
+			reqBuf.rewind();
+			reqBuf.addChar(0);
+		}
+		//trace(reqMethod + " " + reqURL);
+		if (reqMultipart) {
+			// required for HTTP.request to transmit payload with NUL-bytes correctly
+			reqSetHeader("Content-Length", Std.string(reqBuf.length));
+			http = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
 		} else {
-			if (reqMultipart) {
-				// required for HTTP.request to transmit payload with 0-bytes correctly
-				reqSetHeader("Content-Length", Std.string(reqBuf.length));
-				http = HTTP.request(reqURL, reqMethod, reqHeaders, (reqBuf:Buffer));
-			} else {
-				var body = reqBuf.toString();
-				http = HTTP.request(reqURL, reqMethod, reqHeaders, body);
-			}
+			var body = reqBuf.toString();
+			http = HTTP.request(reqURL, reqMethod, reqHeaders, body);
 		}
 		httpMap[http] = { func: fn, custom: custom };
 	}
@@ -47,14 +47,15 @@ class ModioReqGml {
 	@:expose("modio_async_http") public static inline function httpEventHandler() {
 		var e = AsyncEvent.http;
 		var req = httpMap[e.id];
-		if (req == null) return;
-		if (e.status == Progress) return;
+		if (req == null) return false;
+		if (e.status == Progress) return false;
 		httpMap.remove(e.id);
 		// hack: sfgml doesn't know if you want `this` to be passed to function or not,
 		// but here we do not want that, so we'll cast to a non-field function.
 		var fn:Dynamic->Dynamic->Void = req.func;
 		var json:HashTable<String, Dynamic>;
 		if (e.result != null) {
+			//trace(e.result);
 			json = HashTable.parse(e.result);
 			if (json == HashTable.defValue) json = new HashTable();
 		} else {
@@ -67,6 +68,7 @@ class ModioReqGml {
 		}
 		reqInvoke(fn, cast json, req.custom, e.httpStatus);
 		json.destroy();
+		return true;
 	}
 }
 
