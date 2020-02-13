@@ -24,6 +24,10 @@ class ModioCore {
 	private static var reqMultipart:Bool;
 	private static var reqMultipartBoundary:String;
 	private static var reqMultipartSeed:Int = 48271;
+	private static var reqPagination:Bool = false;
+	private static var reqPaginationOffset:Int = 0;
+	private static var reqPaginationLimit:Int = 10;
+	private static var reqFilters:Array<ModioFilter> = [];
 	
 	public static function reqStart(method:String, path:String) {
 		reqFirst = true;
@@ -159,6 +163,15 @@ class ModioCore {
 	}
 	
 	public static function reqSend<J,C>(fn:(json:J, custom:C)->Void, custom:C):Void {
+		if (reqPagination) {
+			reqPagination = false;
+			reqAdd("_offset", reqPaginationOffset);
+			reqAdd("_limit", reqPaginationLimit);
+		}
+		if (reqFilters.length > 0) {
+			reqAddFilters(reqFilters);
+			reqFilters = [];
+		}
 		if (reqMultipart) {
 			reqBuf.add(reqMultipartBoundary);
 			reqBuf.add('--\r\n');
@@ -169,7 +182,16 @@ class ModioCore {
 	public static inline function reqInvoke<T,C>(func:ModioFunc<T,C>, result:T, custom:C, httpStatus:Int):Void {
 		Modio.status = httpStatus;
 		var response:ModioResponse = cast result;
-		var errorText = response.error != null ? response.error.message : null;
+		var errorText:String = null;
+		if (response.error != null) {
+			errorText = response.error.message;
+			var errors = response.error.errors;
+			if (errors != null) {
+				for (k in errors.keys()) {
+					errorText += '$k: ' + errors.get(k);
+				}
+			}
+		}
 		if (httpStatus >= 400 && errorText == null) errorText = "HTTP " + httpStatus;
 		Modio.errorText = errorText;
 		func(result, custom);

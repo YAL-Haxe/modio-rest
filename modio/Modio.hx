@@ -26,16 +26,16 @@ import modio.__macro.ModioMacro.*;
 	
 	@:access(modio.ModioCore)
 	public static function init(_environment:ModioEnvironment, _gameId:Int, _apiKey:String) {
-		apiKey = _apiKey;
-		environment = _environment;
-		reqServer = environment == Test ? "https://api.test.mod.io/v1" : "https://api.mod.io/v1";
+		ModioCore.apiKey = _apiKey;
+		ModioCore.environment = _environment;
+		ModioCore.reqServer = environment == Test ? "https://api.test.mod.io/v1" : "https://api.mod.io/v1";
 		gameId = _gameId;
 	}
 	
 	/** @see https://docs.mod.io/#authentication */
 	@:access(modio.ModioCore)
 	public static function setUserToken(userAuthToken:String) {
-		userToken = userAuthToken;
+		ModioCore.userToken = userAuthToken;
 	}
 	
 	#if (sys && target.threaded)
@@ -43,6 +43,22 @@ import modio.__macro.ModioMacro.*;
 		modio.core.ModioReq.update();
 	}
 	#end
+	
+	//{ Helpers
+	/** @see https://docs.mod.io/#pagination */
+	@:access(modio.ModioCore)
+	public static function setPagination(offset:Int, limit:Int):Void {
+		ModioCore.reqPagination = true;
+		ModioCore.reqPaginationOffset = offset;
+		ModioCore.reqPaginationLimit = limit;
+	}
+	
+	/** @see https://docs.mod.io/#filtering */
+	@:access(modio.ModioCore)
+	public static function addFilters(filters:Array<ModioFilter>):Void {
+		ModioCore.reqFilters = ModioCore.reqFilters.concat(filters);
+	}
+	//}
 	
 	//{ Auth
 	
