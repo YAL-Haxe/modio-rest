@@ -7,4 +7,5 @@ package modio.schema;
 typedef ModioError = {
 	code:Int,
 	message:String,
+	errors:ModioDictionary<String>,
 }
