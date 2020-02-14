@@ -40,8 +40,9 @@ Depending on request, you may want to check that status is just a non-error (`mo
 ### Setting up
 
 - Add `modio` extension to your project by dragging and dropping the YYMP onto your workspace area (in GMS1, import the GMEZ).
-- If you intend to upload mods from your game, similarly import the `ZipWriter` extension (which lets you assemble ZIP files from in-game).
+- If you intend to upload mods from your game, similarly import the [ZipWriter](https://yellowafterlife.itch.io/gamemaker-zip) extension (which lets you assemble ZIP files from in-game).
 - Call `modio_init` on game start. Pick the environment based on whether you are using test (`test.mod.io`) or live (`mod.io`) environment.
+- Call `modio_async_http` in Async - HTTP event of a persistent object.
 - At this point you can call `modio_` functions. Some require authentication (see below).
 
 ### Functions
