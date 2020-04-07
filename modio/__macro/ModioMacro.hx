@@ -28,9 +28,17 @@ class ModioMacro {
 					default:
 				}
 				for (fd in a.fields) {
-					var fn = switch (fd.type) {
+					var ft = fd.type;
+					switch (ft) {
+						case TAbstract(_.get() => { name: "Null", module: "StdTypes" }, p): {
+							ft = p[0];
+						};
+						default:
+					}
+					var fn = switch (ft) {
 						case TAbstract(_.get() => {name:"Bool"}, _): macro reqAddBool;
 						case TType(_.get() => { name: "ModioFile" }, _): macro reqAddFile;
+						case TType(_.get() => { name: "ModioArray" }, _): macro reqAddArray;
 						default: macro reqAdd;
 					}
 					var fs = fd.name;

@@ -1,4 +1,5 @@
 package modio;
+import modio.ModioArray;
 import modio.misc.*;
 import modio.enums.*;
 import modio.schema.*;
@@ -69,6 +70,14 @@ class ModioCore {
 	}
 	public static function reqAddBool(key:String, val:Null<Bool>) {
 		if (val != null) reqAdd(key, val ? "true" : "false");
+	}
+	public static function reqAddArray<T>(key:String, val:ModioArray<T>) {
+		if (val != null) {
+			key += "[]";
+			for (i in 0 ... val.length) {
+				reqAdd(key, val[i]);
+			}
+		}
 	}
 	
 	/** Adds a parameter pair for the API key */
