@@ -1,6 +1,6 @@
 # modio-rest
 
-This is a REST-based Haxe wrapper for [mod.io](https://mod.io) API. It's a little less full-featured than some of the [native wrappers](https://apps.mod.io/) (no automatic installation/in-app mod browser UI), but can do any operations that native does.
+This is a REST-based Haxe wrapper for [mod.io](https://mod.io) API. It's a little less full-featured than some of the [native wrappers](https://integrate.mod.io/) (no automatic installation/in-app mod browser UI), but can do any operations that native does.
 
 Since it's all Haxe, it can also be used to generate SDKs for toolsets without an existing native wrapper.
 
@@ -135,4 +135,4 @@ if (modio_status == 201) { // ditto
 
 - [ZipWriter](https://yellowafterlife.itch.io/gamemaker-zip) (for packing up ZIP files for mod uploads)
 - [JSON beautifier script](https://yal.cc/gamemaker-beautifying-json/) (for looking at JSON output more comfortably)
-- [Sample project](https://apps.mod.io/gamemaker-extension) (has examples for login flow, input prompts, downloader helpers)
+- [Sample project](https://github.com/modio/modio-GameMaker2) (has examples for login flow, input prompts, downloader helpers)
