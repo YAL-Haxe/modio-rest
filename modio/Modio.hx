@@ -9,7 +9,7 @@ import modio.__macro.ModioMacro.*;
  * ...
  * @author YellowAfterlife
  */
-#if (js) @:expose("Modio") #end
+#if (js && !gml) @:expose("Modio") #end
 @:doc @:keep class Modio {
 	
 	@:doc public static var gameId:Int = -1;
